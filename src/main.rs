@@ -1,10 +1,10 @@
-use std::{cmp::Ordering, fs};
+use std::fs;
 
-const HEADER_ROWS: usize = 3;
-const NAME_INDEX: usize = 2;
-const WING_INDEX: usize = 3;
-const LINK_INDEX: usize = 4;
-const MIDDLE_INDEX: usize = 5;
+const HEADER_ROWS: usize = 1;
+const NAME_INDEX: usize = 1;
+const WING_INDEX: usize = 2;
+const LINK_INDEX: usize = 3;
+const MIDDLE_INDEX: usize = 4;
 const POSITIONS_CSV: &str = "./positions.csv";
 
 #[derive(Debug, Clone)]
@@ -30,23 +30,9 @@ fn main() {
     let mut cells: Vec<Player> = Vec::new();
     let lines_in_val: Vec<&str> = val.split(|c| c == '\n' || c == '\r').collect();
     for line in &lines_in_val[HEADER_ROWS..] {
-        let row: Vec<&str> = line.split(",").collect::<Vec<&str>>();
+        let row: Vec<&str> = line.split(",").map(|s| s.trim_matches('"')).collect();
         if row.len() > NAME_INDEX && row[NAME_INDEX].len() > 0 {
-            cells.push(Player {
-                name: row[NAME_INDEX].to_string(),
-                wing: match row[WING_INDEX].parse::<u32>() {
-                    Ok(n) => n,
-                    _ => u32::MAX,
-                },
-                link: match row[LINK_INDEX].parse::<u32>() {
-                    Ok(n) => n,
-                    _ => u32::MAX,
-                },
-                middle: match row[MIDDLE_INDEX].parse::<u32>() {
-                    Ok(n) => n,
-                    _ => u32::MAX,
-                },
-            });
+            cells.push(player_from_row(row));
         }
     }
     let wings: Vec<Player> = sort_by_position(cells.clone(), Position::Wing);
@@ -77,12 +63,38 @@ fn sort_by_position(input: Vec<Player>, position: Position) -> Vec<Player> {
         .into_iter()
         .filter(|p: &Player| get_value(p) < u32::MAX)
         .collect();
-    intermediary.sort_by(|p1: &Player, p2: &Player| {
-        if get_value(p1) > get_value(p2) {
-            Ordering::Greater
-        } else {
-            Ordering::Less
-        }
-    });
-    return intermediary.clone();
+    intermediary.sort_by(|p1: &Player, p2: &Player| get_value(p1).cmp(&get_value(p2)));
+    return intermediary;
+}
+
+fn player_from_row(row: Vec<&str>) -> Player {
+    let mut wing: u32 = parse_position_value(row[WING_INDEX]);
+    let mut link: u32 = parse_position_value(row[LINK_INDEX]);
+    let mut middle: u32 = parse_position_value(row[MIDDLE_INDEX]);
+    if wing == link && link == middle {
+        wing = 1;
+        link = 1;
+        middle = 1;
+    }
+    return Player {
+        name: row[NAME_INDEX]
+            .chars()
+            .filter(|c: &char| c != &'"')
+            .collect::<String>(),
+        wing,
+        link,
+        middle,
+    };
+}
+
+fn parse_position_value(input: &str) -> u32 {
+    return match input
+        .chars()
+        .filter(|c: &char| (*c).is_alphanumeric())
+        .collect::<String>()
+        .parse::<u32>()
+    {
+        Ok(n) => n,
+        Err(_) => u32::MAX,
+    };
 }
