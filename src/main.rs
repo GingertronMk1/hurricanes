@@ -53,9 +53,15 @@ fn main() {
     let links: Vec<Player> = sort_by_position(cells.clone(), Position::Link);
     let middles: Vec<Player> = sort_by_position(cells.clone(), Position::Middle);
 
-    dbg!(wings);
-    dbg!(links);
-    dbg!(middles);
+    for player in wings {
+        println!("{} has wing as choice {}", player.name, player.wing)
+    }
+    for player in links {
+        println!("{} has link as choice {}", player.name, player.link)
+    }
+    for player in middles {
+        println!("{} has middle as choice {}", player.name, player.middle)
+    }
 }
 
 fn sort_by_position(input: Vec<Player>, position: Position) -> Vec<Player> {
