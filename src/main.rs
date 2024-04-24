@@ -79,7 +79,6 @@ fn player_from_row(row: Vec<&str>) -> Player {
     return Player {
         name: row[NAME_INDEX]
             .chars()
-            .filter(|c: &char| c != &'"')
             .collect::<String>(),
         wing,
         link,
