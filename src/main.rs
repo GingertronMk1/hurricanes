@@ -1,12 +1,13 @@
-use std::fs;
+use std::{cmp::Ordering, fs, ops::RangeFull};
 
 const HEADER_ROWS: usize = 3;
 const NAME_INDEX: usize = 2;
 const WING_INDEX: usize = 3;
 const LINK_INDEX: usize = 4;
 const MIDDLE_INDEX: usize = 5;
+const POSITIONS_CSV: &str = "./positions.csv";
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Player {
     name: String,
     wing: u32,
@@ -15,7 +16,7 @@ struct Player {
 }
 
 fn main() {
-    let val: String = match fs::read_to_string("./positions.csv") {
+    let val: String = match fs::read_to_string(POSITIONS_CSV) {
         Ok(s) => s,
         Err(s) => panic!("{}", s),
     };
@@ -28,18 +29,19 @@ fn main() {
                 name: row[NAME_INDEX].to_string(),
                 wing: match row[WING_INDEX].parse::<u32>() {
                     Ok(n) => n,
-                    _ => 0,
+                    _ => u32::MAX,
                 },
                 link: match row[LINK_INDEX].parse::<u32>() {
                     Ok(n) => n,
-                    _ => 0,
+                    _ => u32::MAX,
                 },
                 middle: match row[MIDDLE_INDEX].parse::<u32>() {
                     Ok(n) => n,
-                    _ => 0,
+                    _ => u32::MAX,
                 },
             });
         }
     }
+    let wings = cells.as_slice().sort_by(|p1, p2| if p1.wing > p2.wing { Ordering::Greater} else { Ordering::Less });
     dbg!(cells);
 }
