@@ -1,4 +1,4 @@
-use std::{cmp::Ordering, fs, ops::RangeFull};
+use std::{cmp::Ordering, fs};
 
 const HEADER_ROWS: usize = 3;
 const NAME_INDEX: usize = 2;
@@ -53,14 +53,17 @@ fn main() {
     let links: Vec<Player> = sort_by_position(cells.clone(), Position::Link);
     let middles: Vec<Player> = sort_by_position(cells.clone(), Position::Middle);
 
+    println!("WINGS");
     for player in wings {
-        println!("{} has wing as choice {}", player.name, player.wing)
+        println!("\t{} - {}", player.name, player.wing)
     }
+    println!("LINKS");
     for player in links {
-        println!("{} has link as choice {}", player.name, player.link)
+        println!("\t{} - {}", player.name, player.link)
     }
+    println!("MIDDLES");
     for player in middles {
-        println!("{} has middle as choice {}", player.name, player.middle)
+        println!("\t{} - {}", player.name, player.middle)
     }
 }
 
