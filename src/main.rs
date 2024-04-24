@@ -15,6 +15,13 @@ struct Player {
     middle: u32,
 }
 
+#[derive(Debug, Clone)]
+enum Position {
+    Wing,
+    Link,
+    Middle
+}
+
 fn main() {
     let val: String = match fs::read_to_string(POSITIONS_CSV) {
         Ok(s) => s,
@@ -42,6 +49,24 @@ fn main() {
             });
         }
     }
-    let wings = cells.as_slice().sort_by(|p1, p2| if p1.wing > p2.wing { Ordering::Greater} else { Ordering::Less });
-    dbg!(cells);
+    let wings: Vec<Player> = sort_by_position(cells.clone(), Position::Wing);
+    let links: Vec<Player> = sort_by_position(cells.clone(), Position::Link);
+    let middles: Vec<Player> = sort_by_position(cells.clone(), Position::Middle);
+
+    dbg!(wings);
+    dbg!(links);
+    dbg!(middles);
+}
+
+fn sort_by_position(input: Vec<Player>, position: Position) -> Vec<Player> {
+    let get_value: &dyn Fn(&Player) -> u32 = &|p: &Player| match position { 
+        Position::Wing => p.wing,
+        Position::Link => p.link,
+        Position::Middle => p.middle
+    };
+    let mut intermediary: Vec<Player> = input
+        .into_iter()
+        .filter(|p: &Player| get_value(p) < u32::MAX).collect();
+    intermediary.sort_by(|p1: &Player, p2: &Player| if get_value(p1) > get_value(p2) {Ordering::Greater} else {Ordering::Less});
+    return intermediary.clone();
 }
