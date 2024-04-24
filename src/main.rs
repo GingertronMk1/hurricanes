@@ -19,7 +19,7 @@ struct Player {
 enum Position {
     Wing,
     Link,
-    Middle
+    Middle,
 }
 
 fn main() {
@@ -68,14 +68,21 @@ fn main() {
 }
 
 fn sort_by_position(input: Vec<Player>, position: Position) -> Vec<Player> {
-    let get_value: &dyn Fn(&Player) -> u32 = &|p: &Player| match position { 
+    let get_value: &dyn Fn(&Player) -> u32 = &|p: &Player| match position {
         Position::Wing => p.wing,
         Position::Link => p.link,
-        Position::Middle => p.middle
+        Position::Middle => p.middle,
     };
     let mut intermediary: Vec<Player> = input
         .into_iter()
-        .filter(|p: &Player| get_value(p) < u32::MAX).collect();
-    intermediary.sort_by(|p1: &Player, p2: &Player| if get_value(p1) > get_value(p2) {Ordering::Greater} else {Ordering::Less});
+        .filter(|p: &Player| get_value(p) < u32::MAX)
+        .collect();
+    intermediary.sort_by(|p1: &Player, p2: &Player| {
+        if get_value(p1) > get_value(p2) {
+            Ordering::Greater
+        } else {
+            Ordering::Less
+        }
+    });
     return intermediary.clone();
 }
