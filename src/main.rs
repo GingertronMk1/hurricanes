@@ -54,7 +54,7 @@ impl eframe::App for MyEguiApp {
                 sort_by_position(self.players.clone(), Position::Link, FIRST_CHOICES_ONLY);
             let middles: Vec<Player> =
                 sort_by_position(self.players.clone(), Position::Middle, FIRST_CHOICES_ONLY);
-            ui.horizontal(|ui| {
+            ui.horizontal_wrapped(|ui| {
                 ui.vertical(|ui| {
                     ui.heading("Wings");
                     for player in wings {
