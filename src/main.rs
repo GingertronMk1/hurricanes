@@ -1,4 +1,4 @@
-use eframe::egui;
+use eframe::{egui, CreationContext};
 use std::{fmt, fs};
 
 const HEADER_ROWS: usize = 1;
@@ -10,32 +10,18 @@ const POSITIONS_CSV: &str = "./positions.csv";
 const FIRST_CHOICES_ONLY: bool = true;
 
 fn main() {
-    let val: String = match fs::read_to_string(POSITIONS_CSV) {
-        Ok(s) => s,
-        Err(s) => panic!("{}", s),
-    };
-    let mut cells: Vec<Player> = Vec::new();
-    let lines_in_val: Vec<&str> = val.split(|c| c == '\n' || c == '\r').collect();
-    for line in &lines_in_val[HEADER_ROWS..] {
-        let row: Vec<&str> = line.split(",").map(|s| s.trim_matches('"')).collect();
-        if row.len() > NAME_INDEX && row[NAME_INDEX].len() > 0 {
-            cells.push(player_from_row(row));
-        }
-    }
-    let wings: Vec<Player> = sort_by_position(cells.clone(), Position::Wing, FIRST_CHOICES_ONLY);
-    let links: Vec<Player> = sort_by_position(cells.clone(), Position::Link, FIRST_CHOICES_ONLY);
-    let middles: Vec<Player> = sort_by_position(cells.clone(), Position::Middle, FIRST_CHOICES_ONLY);
-
-    print_players_in_position(wings, Position::Wing);
-    print_players_in_position(links, Position::Link);
-    print_players_in_position(middles, Position::Middle);
-
     let native_options = eframe::NativeOptions::default();
-    let _ = eframe::run_native("My egui App", native_options, Box::new(|cc| Box::new(MyEguiApp::new(cc))));
+    let _ = eframe::run_native(
+        "Touch Rugby Helper",
+        native_options,
+        Box::new(|cc: &CreationContext| Box::new(MyEguiApp::new(cc))),
+    );
 }
 
 #[derive(Default)]
-struct MyEguiApp {}
+struct MyEguiApp {
+    players: Vec<Player>,
+}
 
 impl MyEguiApp {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
@@ -43,18 +29,56 @@ impl MyEguiApp {
         // Restore app state using cc.storage (requires the "persistence" feature).
         // Use the cc.gl (a glow::Context) to create graphics shaders and buffers that you can use
         // for e.g. egui::PaintCallback.
-        Self::default()
+        let val: String = match fs::read_to_string(POSITIONS_CSV) {
+            Ok(s) => s,
+            Err(s) => panic!("{}", s),
+        };
+        let mut cells: Vec<Player> = Vec::new();
+        let lines_in_val: Vec<&str> = val.split(|c| c == '\n' || c == '\r').collect();
+        for line in &lines_in_val[HEADER_ROWS..] {
+            let row: Vec<&str> = line.split(",").map(|s| s.trim_matches('"')).collect();
+            if row.len() > NAME_INDEX && row[NAME_INDEX].len() > 0 {
+                cells.push(player_from_row(row));
+            }
+        }
+        return Self { players: cells };
     }
 }
 
 impl eframe::App for MyEguiApp {
-   fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-       egui::CentralPanel::default().show(ctx, |ui| {
-           ui.heading("Hello World!");
-       });
-   }
+    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+        egui::CentralPanel::default().show(ctx, |ui| {
+            let wings: Vec<Player> =
+                sort_by_position(self.players.clone(), Position::Wing, FIRST_CHOICES_ONLY);
+            let links: Vec<Player> =
+                sort_by_position(self.players.clone(), Position::Link, FIRST_CHOICES_ONLY);
+            let middles: Vec<Player> =
+                sort_by_position(self.players.clone(), Position::Middle, FIRST_CHOICES_ONLY);
+            ui.horizontal(|ui| {
+                ui.vertical(|ui| {
+                    ui.heading("Wings");
+                    for player in wings {
+                        ui.label(player.name);
+                    }
+                });
+                ui.separator();
+                ui.vertical(|ui| {
+                    ui.heading("Links");
+                    for player in links {
+                        ui.label(player.name);
+                    }
+                });
+                ui.separator();
+                ui.vertical(|ui| {
+                    ui.heading("Middles");
+                    for player in middles {
+                        ui.label(player.name);
+                    }
+                });
+            });
+        });
+    }
 }
-
 
 #[derive(Debug, Clone)]
 struct Player {
@@ -77,7 +101,7 @@ impl fmt::Display for Position {
             Position::Wing => write!(f, "Wing"),
             Position::Link => write!(f, "Link"),
             Position::Middle => write!(f, "Middle"),
-        }
+        };
     }
 }
 
@@ -93,7 +117,11 @@ fn print_players_in_position(players: Vec<Player>, position: Position) -> () {
     }
 }
 
-fn sort_by_position(input: Vec<Player>, position: Position, only_first_choices: bool) -> Vec<Player> {
+fn sort_by_position(
+    input: Vec<Player>,
+    position: Position,
+    only_first_choices: bool,
+) -> Vec<Player> {
     let get_value: &dyn Fn(&Player) -> u32 = &|p: &Player| match position {
         Position::Wing => p.wing,
         Position::Link => p.link,
@@ -119,9 +147,7 @@ fn player_from_row(row: Vec<&str>) -> Player {
         middle = 1;
     }
     return Player {
-        name: row[NAME_INDEX]
-            .chars()
-            .collect::<String>(),
+        name: row[NAME_INDEX].chars().collect::<String>(),
         wing,
         link,
         middle,
