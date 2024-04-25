@@ -74,10 +74,10 @@ fn sort_by_position(input: Vec<Player>, position: Position, only_first_choices: 
         Position::Middle => p.middle,
     };
 
-    let max_preference = if only_first_choices { 2 } else { u32::MAX };
+    let max_preference = if only_first_choices { 1 } else { u32::MAX - 1 };
     let mut intermediary: Vec<Player> = input
         .into_iter()
-        .filter(|p: &Player| get_value(p) < max_preference)
+        .filter(|p: &Player| get_value(p) <= max_preference)
         .collect();
     intermediary.sort_by(|p1: &Player, p2: &Player| get_value(p1).cmp(&get_value(p2)));
     return intermediary;
