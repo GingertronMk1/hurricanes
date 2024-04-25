@@ -1,4 +1,4 @@
-use eframe::{egui, CreationContext};
+use eframe::{egui, CreationContext, NativeOptions};
 use std::{fmt, fs};
 
 const HEADER_ROWS: usize = 1;
@@ -10,7 +10,7 @@ const POSITIONS_CSV: &str = "./positions.csv";
 const FIRST_CHOICES_ONLY: bool = true;
 
 fn main() {
-    let native_options = eframe::NativeOptions::default();
+    let native_options: NativeOptions = eframe::NativeOptions::default();
     let _ = eframe::run_native(
         "Touch Rugby Helper",
         native_options,
