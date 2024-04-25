@@ -49,12 +49,12 @@ impl Default for MyEguiApp {
         };
         return Self {
             players: Vec::new(),
-            left_wing: new_circle(100, 100),
-            left_link: new_circle(200, 100),
-            left_middle: new_circle(300, 100),
-            right_middle: new_circle(400, 100),
-            right_link: new_circle(500, 100),
-            right_wing: new_circle(600, 100),
+            left_wing: new_circle(100, 500),
+            left_link: new_circle(200, 500),
+            left_middle: new_circle(300, 500),
+            right_middle: new_circle(400, 500),
+            right_link: new_circle(500, 500),
+            right_wing: new_circle(600, 500),
         };
     }
 }
