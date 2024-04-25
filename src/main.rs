@@ -91,18 +91,6 @@ impl fmt::Display for Position {
     }
 }
 
-fn print_players_in_position(players: Vec<Player>, position: Position) -> () {
-    println!("{}", position);
-    for player in players {
-        let position_preference = match position {
-            Position::Wing => player.wing,
-            Position::Link => player.link,
-            Position::Middle => player.middle,
-        };
-        println!("\t{} - {}", player.name, position_preference)
-    }
-}
-
 fn sort_by_position(
     input: Vec<Player>,
     position: Position,
