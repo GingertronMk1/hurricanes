@@ -1,8 +1,37 @@
 use eframe::egui;
+use std::{fmt, fs};
+
+const HEADER_ROWS: usize = 1;
+const NAME_INDEX: usize = 1;
+const WING_INDEX: usize = 2;
+const LINK_INDEX: usize = 3;
+const MIDDLE_INDEX: usize = 4;
+const POSITIONS_CSV: &str = "./positions.csv";
+const FIRST_CHOICES_ONLY: bool = true;
 
 fn main() {
+    let val: String = match fs::read_to_string(POSITIONS_CSV) {
+        Ok(s) => s,
+        Err(s) => panic!("{}", s),
+    };
+    let mut cells: Vec<Player> = Vec::new();
+    let lines_in_val: Vec<&str> = val.split(|c| c == '\n' || c == '\r').collect();
+    for line in &lines_in_val[HEADER_ROWS..] {
+        let row: Vec<&str> = line.split(",").map(|s| s.trim_matches('"')).collect();
+        if row.len() > NAME_INDEX && row[NAME_INDEX].len() > 0 {
+            cells.push(player_from_row(row));
+        }
+    }
+    let wings: Vec<Player> = sort_by_position(cells.clone(), Position::Wing, FIRST_CHOICES_ONLY);
+    let links: Vec<Player> = sort_by_position(cells.clone(), Position::Link, FIRST_CHOICES_ONLY);
+    let middles: Vec<Player> = sort_by_position(cells.clone(), Position::Middle, FIRST_CHOICES_ONLY);
+
+    print_players_in_position(wings, Position::Wing);
+    print_players_in_position(links, Position::Link);
+    print_players_in_position(middles, Position::Middle);
+
     let native_options = eframe::NativeOptions::default();
-    eframe::run_native("My egui App", native_options, Box::new(|cc| Box::new(MyEguiApp::new(cc))));
+    let _ = eframe::run_native("My egui App", native_options, Box::new(|cc| Box::new(MyEguiApp::new(cc))));
 }
 
 #[derive(Default)]
@@ -26,16 +55,6 @@ impl eframe::App for MyEguiApp {
    }
 }
 
-#[cfg(not(DOING_GUI))]
-use std::{fmt, fs};
-
-const HEADER_ROWS: usize = 1;
-const NAME_INDEX: usize = 1;
-const WING_INDEX: usize = 2;
-const LINK_INDEX: usize = 3;
-const MIDDLE_INDEX: usize = 4;
-const POSITIONS_CSV: &str = "./positions.csv";
-const FIRST_CHOICES_ONLY: bool = true;
 
 #[derive(Debug, Clone)]
 struct Player {
@@ -60,28 +79,6 @@ impl fmt::Display for Position {
             Position::Middle => write!(f, "Middle"),
         }
     }
-}
-
-fn main() {
-    let val: String = match fs::read_to_string(POSITIONS_CSV) {
-        Ok(s) => s,
-        Err(s) => panic!("{}", s),
-    };
-    let mut cells: Vec<Player> = Vec::new();
-    let lines_in_val: Vec<&str> = val.split(|c| c == '\n' || c == '\r').collect();
-    for line in &lines_in_val[HEADER_ROWS..] {
-        let row: Vec<&str> = line.split(",").map(|s| s.trim_matches('"')).collect();
-        if row.len() > NAME_INDEX && row[NAME_INDEX].len() > 0 {
-            cells.push(player_from_row(row));
-        }
-    }
-    let wings: Vec<Player> = sort_by_position(cells.clone(), Position::Wing, FIRST_CHOICES_ONLY);
-    let links: Vec<Player> = sort_by_position(cells.clone(), Position::Link, FIRST_CHOICES_ONLY);
-    let middles: Vec<Player> = sort_by_position(cells.clone(), Position::Middle, FIRST_CHOICES_ONLY);
-
-    print_players_in_position(wings, Position::Wing);
-    print_players_in_position(links, Position::Link);
-    print_players_in_position(middles, Position::Middle);
 }
 
 fn print_players_in_position(players: Vec<Player>, position: Position) -> () {
