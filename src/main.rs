@@ -92,11 +92,11 @@ impl Position {
 
 impl fmt::Display for Position {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        return match self {
-            Position::Wing => write!(f, "Wing"),
-            Position::Link => write!(f, "Link"),
-            Position::Middle => write!(f, "Middle"),
-        };
+        return write!(f, "{}", match self {
+            Position::Wing => "Wing",
+            Position::Link => "Link",
+            Position::Middle => "Middle",
+        });
     }
 }
 
