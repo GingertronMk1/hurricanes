@@ -48,33 +48,19 @@ impl MyEguiApp {
 impl eframe::App for MyEguiApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui| {
-            let wings: Vec<Player> =
-                sort_by_position(self.players.clone(), Position::Wing, FIRST_CHOICES_ONLY);
-            let links: Vec<Player> =
-                sort_by_position(self.players.clone(), Position::Link, FIRST_CHOICES_ONLY);
-            let middles: Vec<Player> =
-                sort_by_position(self.players.clone(), Position::Middle, FIRST_CHOICES_ONLY);
-            ui.horizontal_wrapped(|ui| {
-                ui.vertical(|ui| {
-                    ui.heading("Wings");
-                    for player in wings {
-                        ui.label(player.name);
-                    }
-                });
-                ui.separator();
-                ui.vertical(|ui| {
-                    ui.heading("Links");
-                    for player in links {
-                        ui.label(player.name);
-                    }
-                });
-                ui.separator();
-                ui.vertical(|ui| {
-                    ui.heading("Middles");
-                    for player in middles {
-                        ui.label(player.name);
-                    }
-                });
+            ui.horizontal(|ui| {
+                for position in [Position::Wing, Position::Link, Position::Middle] {
+                    ui.group(|ui| {
+                        ui.vertical(|ui| {
+                            ui.heading(position.to_string());
+                            for player in
+                                sort_by_position(self.players.clone(), position, FIRST_CHOICES_ONLY)
+                            {
+                                ui.label(player.name);
+                            }
+                        });
+                    });
+                }
             });
         });
     }
