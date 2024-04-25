@@ -1,4 +1,7 @@
-use eframe::{egui, CreationContext, NativeOptions};
+use eframe::{
+    egui::{self, Ui},
+    CreationContext, NativeOptions,
+};
 use std::{fmt, fs};
 
 const HEADER_ROWS: usize = 1;
@@ -47,11 +50,11 @@ impl MyEguiApp {
 
 impl eframe::App for MyEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        egui::CentralPanel::default().show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                for position in [Position::Wing, Position::Link, Position::Middle] {
-                    ui.group(|ui| {
-                        ui.vertical(|ui| {
+        egui::CentralPanel::default().show(ctx, |ui: &mut Ui| {
+            ui.horizontal(|ui: &mut Ui| {
+                for position in Position::list() {
+                    ui.group(|ui: &mut Ui| {
+                        ui.vertical(|ui: &mut Ui| {
                             ui.heading(position.to_string());
                             for player in
                                 sort_by_position(self.players.clone(), position, FIRST_CHOICES_ONLY)
@@ -79,6 +82,12 @@ enum Position {
     Wing,
     Link,
     Middle,
+}
+
+impl Position {
+    fn list() -> Vec<Self> {
+        return Vec::from([Self::Wing, Self::Link, Self::Middle]);
+    }
 }
 
 impl fmt::Display for Position {
