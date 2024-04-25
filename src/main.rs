@@ -1,6 +1,6 @@
 use eframe::{
-    egui::{self, Ui},
-    CreationContext, NativeOptions,
+    egui::{self, Color32, Pos2, Shape, Ui, Vec2},
+    CreationContext, NativeOptions, WindowBuilder,
 };
 use std::{fmt, fs};
 
@@ -13,7 +13,14 @@ const POSITIONS_CSV: &str = "./positions.csv";
 const FIRST_CHOICES_ONLY: bool = true;
 
 fn main() {
-    let native_options: NativeOptions = eframe::NativeOptions::default();
+    let native_options: NativeOptions = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder {
+            resizable: Some(false),
+            inner_size: Some(Vec2::from([1000.0, 1000.0])),
+            ..egui::ViewportBuilder::default()
+        },
+        ..Default::default()
+    };
     let _ = eframe::run_native(
         "Touch Rugby Helper",
         native_options,
@@ -21,9 +28,35 @@ fn main() {
     );
 }
 
-#[derive(Default)]
 struct MyEguiApp {
     players: Vec<Player>,
+    left_wing: Shape,
+    left_link: Shape,
+    left_middle: Shape,
+    right_middle: Shape,
+    right_link: Shape,
+    right_wing: Shape,
+}
+
+impl Default for MyEguiApp {
+    fn default() -> Self {
+        let new_circle = |x: i16, y: i16| {
+            Shape::circle_filled(
+                Pos2::new(f32::from(x), f32::from(y)),
+                50.0,
+                Color32::from_rgb(255, 0, 0),
+            )
+        };
+        return Self {
+            players: Vec::new(),
+            left_wing: new_circle(100, 100),
+            left_link: new_circle(200, 100),
+            left_middle: new_circle(300, 100),
+            right_middle: new_circle(400, 100),
+            right_link: new_circle(500, 100),
+            right_wing: new_circle(600, 100),
+        };
+    }
 }
 
 impl MyEguiApp {
@@ -44,13 +77,30 @@ impl MyEguiApp {
                 cells.push(player_from_row(row));
             }
         }
-        return Self { players: cells };
+        return MyEguiApp {
+            players: cells,
+            ..Default::default()
+        };
+    }
+
+    fn get_field_players(&self) -> Vec<Shape> {
+        return Vec::from([
+            self.left_wing.clone(),
+            self.left_link.clone(),
+            self.left_middle.clone(),
+            self.right_middle.clone(),
+            self.right_link.clone(),
+            self.right_wing.clone(),
+        ]);
     }
 }
 
 impl eframe::App for MyEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui: &mut Ui| {
+            for player in self.get_field_players() {
+                ui.painter().add(player);
+            }
             ui.horizontal(|ui: &mut Ui| {
                 for position in Position::list() {
                     ui.group(|ui: &mut Ui| {
@@ -92,11 +142,15 @@ impl Position {
 
 impl fmt::Display for Position {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        return write!(f, "{}", match self {
-            Position::Wing => "Wing",
-            Position::Link => "Link",
-            Position::Middle => "Middle",
-        });
+        return write!(
+            f,
+            "{}",
+            match self {
+                Position::Wing => "Wing",
+                Position::Link => "Link",
+                Position::Middle => "Middle",
+            }
+        );
     }
 }
 
