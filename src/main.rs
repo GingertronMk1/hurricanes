@@ -28,12 +28,22 @@ impl Default for Player {
             wing: u32::MAX,
             link: u32::MAX,
             middle: u32::MAX,
-            present: true
+            present: true,
         }
     }
 }
 
-#[derive(Debug, Clone)]
+impl Player {
+    fn get_position_value(&self, position: Position) -> u32 {
+        match position {
+            Position::Wing => self.wing,
+            Position::Link => self.link,
+            Position::Middle => self.middle
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
 enum Position {
     Wing,
     Link,
@@ -142,39 +152,39 @@ impl eframe::App for MyEguiApp {
                         }
                     });
                 });
-                for position in Position::list() {
-                    ui.group(|ui: &mut Ui| {
-                        ui.vertical(|ui: &mut Ui| {
-                            ui.heading(position.to_string());
-                            for (n, player) in sort_by_position(self.players.clone(), position).iter().enumerate() {
-                                ui.label(n.to_string());
-                                ui.label(&player.name);
-                            }
+                ui.vertical(|ui| {
+                    for position in Position::list() {
+                        ui.group(|ui: &mut Ui| {
+                            ui.vertical(|ui: &mut Ui| {
+                                ui.heading(position.to_string());
+                                let pos_players: Vec<Player> =
+                                    sort_by_position(self.players.clone(), position);
+                                for (n, player) in pos_players.iter().enumerate() {
+                                    if n > 0 && pos_players[n - 1].get_position_value(position) != player.get_position_value(position) {
+                                        ui.separator();
+                                    }
+                                    ui.label(&player.name);
+                                }
+                            });
                         });
-                    });
-                }
+                    }
+                });
             });
         });
     }
 }
 
 fn sort_by_position(input: Vec<Player>, position: Position) -> Vec<Player> {
-    let get_value: &dyn Fn(&Player) -> u32 = &|p: &Player| match position {
-        Position::Wing => p.wing,
-        Position::Link => p.link,
-        Position::Middle => p.middle,
-    };
-
     let max_preference = if FIRST_CHOICES_ONLY { 1 } else { u32::MAX - 1 };
     let mut intermediary: Vec<Player> = input
         .into_iter()
-        .filter(|p: &Player| get_value(p) <= max_preference && p.present)
+        .filter(|p: &Player| p.get_position_value(position) <= max_preference && p.present)
         .collect();
     intermediary.sort_by(|p1: &Player, p2: &Player| {
-        if get_value(p1).cmp(&get_value(p2)) == Ordering::Equal {
+        if p1.get_position_value(position).cmp(&p2.get_position_value(position)) == Ordering::Equal {
             p1.name.cmp(&p2.name)
         } else {
-            get_value(p1).cmp(&get_value(p2))
+           p1.get_position_value(position).cmp(&p2.get_position_value(position))
         }
     });
     return intermediary;
