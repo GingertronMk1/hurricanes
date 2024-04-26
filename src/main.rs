@@ -10,7 +10,7 @@ const WING_INDEX: usize = 2;
 const LINK_INDEX: usize = 3;
 const MIDDLE_INDEX: usize = 4;
 const POSITIONS_CSV: &str = "./positions.csv";
-const FIRST_CHOICES_ONLY: bool = true;
+const FIRST_CHOICES_ONLY: bool = false;
 
 fn main() {
     let native_options: NativeOptions = eframe::NativeOptions {
