@@ -1,6 +1,6 @@
 use eframe::{
     egui::{self, Color32, Pos2, Shape, Ui, Vec2},
-    CreationContext, NativeOptions, WindowBuilder,
+    CreationContext, NativeOptions,
 };
 use std::{fmt, fs};
 
@@ -98,10 +98,18 @@ impl MyEguiApp {
 impl eframe::App for MyEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui: &mut Ui| {
-            for player in self.get_field_players() {
-                ui.painter().add(player);
-            }
+            // for player in self.get_field_players() {
+            //     ui.painter().add(player);
+            // }
             ui.horizontal(|ui: &mut Ui| {
+                ui.group(|ui: &mut Ui| {
+                    ui.vertical(|ui: &mut Ui| {
+                        ui.heading("All Players");
+                        for player in &mut self.players {
+                            ui.checkbox(&mut player.present, player.name.clone());
+                        }
+                    });
+                });
                 for position in Position::list() {
                     ui.group(|ui: &mut Ui| {
                         ui.vertical(|ui: &mut Ui| {
@@ -125,6 +133,7 @@ struct Player {
     wing: u32,
     link: u32,
     middle: u32,
+    present: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -168,7 +177,7 @@ fn sort_by_position(
     let max_preference = if only_first_choices { 1 } else { u32::MAX - 1 };
     let mut intermediary: Vec<Player> = input
         .into_iter()
-        .filter(|p: &Player| get_value(p) <= max_preference)
+        .filter(|p: &Player| get_value(p) <= max_preference && p.present)
         .collect();
     intermediary.sort_by(|p1: &Player, p2: &Player| get_value(p1).cmp(&get_value(p2)));
     return intermediary;
@@ -188,6 +197,7 @@ fn player_from_row(row: Vec<&str>) -> Player {
         wing,
         link,
         middle,
+        present: true,
     };
 }
 
