@@ -1,3 +1,4 @@
+#[doc(inline)]
 use eframe::{
     egui::{self, Color32, Pos2, Shape, Ui, Vec2},
     CreationContext, NativeOptions,
@@ -12,15 +13,24 @@ const MIDDLE_INDEX: usize = 4;
 const POSITIONS_CSV: &str = "./positions.csv";
 const FIRST_CHOICES_ONLY: bool = false;
 
+/// The base struct around which this is all built.
+/// The player's name, their positional preferences, and whether or not they should be considered.
 #[derive(Debug, Clone)]
 struct Player {
+    /// The player's name
     name: String,
+    /// The player's preference for playing the wing position
     wing: u32,
+    /// The player's preference for playing the link position
     link: u32,
+    /// The player's preference for playing the middle position
     middle: u32,
+    /// Whether or not they're there, be this at a training session or at a tournament
     present: bool,
 }
 
+/// The default player is simply called "Default", and would rather not play.
+/// I've never related so hard.
 impl Default for Player {
     fn default() -> Self {
         Player {
@@ -34,15 +44,20 @@ impl Default for Player {
 }
 
 impl Player {
+    /// Take a player, get their preference for a given Position
     fn get_position_value(&self, position: Position) -> u32 {
         match position {
             Position::Wing => self.wing,
             Position::Link => self.link,
-            Position::Middle => self.middle
+            Position::Middle => self.middle,
         }
     }
 }
 
+/// There are 3 positions in touch rugby:
+/// - Wing
+/// - Link
+/// - Middle
 #[derive(Debug, Clone, Copy)]
 enum Position {
     Wing,
@@ -51,6 +66,7 @@ enum Position {
 }
 
 impl Position {
+    /// Quick'n'dirty return all positions
     fn list() -> Vec<Self> {
         return Vec::from([Self::Wing, Self::Link, Self::Middle]);
     }
@@ -125,7 +141,7 @@ impl MyEguiApp {
         };
     }
 
-    fn get_field_players(&self) -> Vec<Shape> {
+    fn get_field_players(self) -> Vec<Shape> {
         return Vec::from([
             self.left_wing.clone(),
             self.left_link.clone(),
@@ -140,9 +156,6 @@ impl MyEguiApp {
 impl eframe::App for MyEguiApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(ctx, |ui: &mut Ui| {
-            // for player in self.get_field_players() {
-            //     ui.painter().add(player);
-            // }
             ui.horizontal(|ui: &mut Ui| {
                 ui.group(|ui: &mut Ui| {
                     ui.vertical(|ui: &mut Ui| {
@@ -160,7 +173,10 @@ impl eframe::App for MyEguiApp {
                                 let pos_players: Vec<Player> =
                                     sort_by_position(self.players.clone(), position);
                                 for (n, player) in pos_players.iter().enumerate() {
-                                    if n > 0 && pos_players[n - 1].get_position_value(position) != player.get_position_value(position) {
+                                    if n > 0
+                                        && pos_players[n - 1].get_position_value(position)
+                                            != player.get_position_value(position)
+                                    {
                                         ui.separator();
                                     }
                                     ui.label(&player.name);
@@ -181,10 +197,15 @@ fn sort_by_position(input: Vec<Player>, position: Position) -> Vec<Player> {
         .filter(|p: &Player| p.get_position_value(position) <= max_preference && p.present)
         .collect();
     intermediary.sort_by(|p1: &Player, p2: &Player| {
-        if p1.get_position_value(position).cmp(&p2.get_position_value(position)) == Ordering::Equal {
+        if p1
+            .get_position_value(position)
+            .cmp(&p2.get_position_value(position))
+            == Ordering::Equal
+        {
             p1.name.cmp(&p2.name)
         } else {
-           p1.get_position_value(position).cmp(&p2.get_position_value(position))
+            p1.get_position_value(position)
+                .cmp(&p2.get_position_value(position))
         }
     });
     return intermediary;
