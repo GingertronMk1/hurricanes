@@ -146,8 +146,9 @@ impl eframe::App for MyEguiApp {
                     ui.group(|ui: &mut Ui| {
                         ui.vertical(|ui: &mut Ui| {
                             ui.heading(position.to_string());
-                            for player in sort_by_position(self.players.clone(), position) {
-                                ui.label(player.name);
+                            for (n, player) in sort_by_position(self.players.clone(), position).iter().enumerate() {
+                                ui.label(n.to_string());
+                                ui.label(&player.name);
                             }
                         });
                     });
