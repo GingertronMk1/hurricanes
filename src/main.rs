@@ -12,20 +12,40 @@ const MIDDLE_INDEX: usize = 4;
 const POSITIONS_CSV: &str = "./positions.csv";
 const FIRST_CHOICES_ONLY: bool = false;
 
-fn main() {
-    let native_options: NativeOptions = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder {
-            resizable: Some(false),
-            inner_size: Some(Vec2::from([1000.0, 1000.0])),
-            ..egui::ViewportBuilder::default()
-        },
-        ..Default::default()
-    };
-    let _ = eframe::run_native(
-        "Touch Rugby Helper",
-        native_options,
-        Box::new(|cc: &CreationContext| Box::new(MyEguiApp::new(cc))),
-    );
+#[derive(Debug, Clone)]
+struct Player {
+    name: String,
+    wing: u32,
+    link: u32,
+    middle: u32,
+    present: bool,
+}
+
+#[derive(Debug, Clone)]
+enum Position {
+    Wing,
+    Link,
+    Middle,
+}
+
+impl Position {
+    fn list() -> Vec<Self> {
+        return Vec::from([Self::Wing, Self::Link, Self::Middle]);
+    }
+}
+
+impl fmt::Display for Position {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        return write!(
+            f,
+            "{}",
+            match self {
+                Position::Wing => "Wing",
+                Position::Link => "Link",
+                Position::Middle => "Middle",
+            }
+        );
+    }
 }
 
 struct MyEguiApp {
@@ -114,9 +134,7 @@ impl eframe::App for MyEguiApp {
                     ui.group(|ui: &mut Ui| {
                         ui.vertical(|ui: &mut Ui| {
                             ui.heading(position.to_string());
-                            for player in
-                                sort_by_position(self.players.clone(), position, FIRST_CHOICES_ONLY)
-                            {
+                            for player in sort_by_position(self.players.clone(), position) {
                                 ui.label(player.name);
                             }
                         });
@@ -127,54 +145,14 @@ impl eframe::App for MyEguiApp {
     }
 }
 
-#[derive(Debug, Clone)]
-struct Player {
-    name: String,
-    wing: u32,
-    link: u32,
-    middle: u32,
-    present: bool,
-}
-
-#[derive(Debug, Clone)]
-enum Position {
-    Wing,
-    Link,
-    Middle,
-}
-
-impl Position {
-    fn list() -> Vec<Self> {
-        return Vec::from([Self::Wing, Self::Link, Self::Middle]);
-    }
-}
-
-impl fmt::Display for Position {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        return write!(
-            f,
-            "{}",
-            match self {
-                Position::Wing => "Wing",
-                Position::Link => "Link",
-                Position::Middle => "Middle",
-            }
-        );
-    }
-}
-
-fn sort_by_position(
-    input: Vec<Player>,
-    position: Position,
-    only_first_choices: bool,
-) -> Vec<Player> {
+fn sort_by_position(input: Vec<Player>, position: Position) -> Vec<Player> {
     let get_value: &dyn Fn(&Player) -> u32 = &|p: &Player| match position {
         Position::Wing => p.wing,
         Position::Link => p.link,
         Position::Middle => p.middle,
     };
 
-    let max_preference = if only_first_choices { 1 } else { u32::MAX - 1 };
+    let max_preference = if FIRST_CHOICES_ONLY { 1 } else { u32::MAX - 1 };
     let mut intermediary: Vec<Player> = input
         .into_iter()
         .filter(|p: &Player| get_value(p) <= max_preference && p.present)
@@ -217,4 +195,20 @@ fn parse_position_value(input: &str) -> u32 {
         Ok(n) => n,
         Err(_) => u32::MAX,
     };
+}
+
+fn main() {
+    let native_options: NativeOptions = eframe::NativeOptions {
+        viewport: egui::ViewportBuilder {
+            resizable: Some(false),
+            inner_size: Some(Vec2::from([1000.0, 1000.0])),
+            ..egui::ViewportBuilder::default()
+        },
+        ..Default::default()
+    };
+    let _ = eframe::run_native(
+        "Touch Rugby Helper",
+        native_options,
+        Box::new(|cc: &CreationContext| Box::new(MyEguiApp::new(cc))),
+    );
 }
