@@ -52,6 +52,38 @@ impl Player {
             Position::Middle => self.middle,
         }
     }
+
+    fn parse_position_value(input: &str) -> u32 {
+        return match input
+            .chars()
+            .filter(|c: &char| (*c).is_alphanumeric())
+            .collect::<String>()
+            .parse::<u32>()
+        {
+            Ok(n) => n,
+            Err(_) => u32::MAX,
+        };
+    }
+
+    fn from_row(row: Vec<&str>) -> Self {
+        let mut wing: u32 = Self::parse_position_value(row[WING_INDEX]);
+        let mut link: u32 = Self::parse_position_value(row[LINK_INDEX]);
+        let mut middle: u32 = Self::parse_position_value(row[MIDDLE_INDEX]);
+        if wing == link && link == middle {
+            wing = 1;
+            link = 1;
+            middle = 1;
+        }
+        return Player {
+            name: row[NAME_INDEX].chars().collect::<String>(),
+            wing,
+            link,
+            middle,
+            present: true,
+        };
+    }
+
+
 }
 
 /// There are 3 positions in touch rugby:
@@ -132,7 +164,7 @@ impl MyEguiApp {
         for line in &lines_in_val[HEADER_ROWS..] {
             let row: Vec<&str> = line.split(",").map(|s| s.trim_matches('"')).collect();
             if row.len() > NAME_INDEX && row[NAME_INDEX].len() > 0 {
-                cells.push(player_from_row(row));
+                cells.push(Player::from_row(row));
             }
         }
         return MyEguiApp {
@@ -211,35 +243,6 @@ fn sort_by_position(input: Vec<Player>, position: Position) -> Vec<Player> {
     return intermediary;
 }
 
-fn player_from_row(row: Vec<&str>) -> Player {
-    let mut wing: u32 = parse_position_value(row[WING_INDEX]);
-    let mut link: u32 = parse_position_value(row[LINK_INDEX]);
-    let mut middle: u32 = parse_position_value(row[MIDDLE_INDEX]);
-    if wing == link && link == middle {
-        wing = 1;
-        link = 1;
-        middle = 1;
-    }
-    return Player {
-        name: row[NAME_INDEX].chars().collect::<String>(),
-        wing,
-        link,
-        middle,
-        present: true,
-    };
-}
-
-fn parse_position_value(input: &str) -> u32 {
-    return match input
-        .chars()
-        .filter(|c: &char| (*c).is_alphanumeric())
-        .collect::<String>()
-        .parse::<u32>()
-    {
-        Ok(n) => n,
-        Err(_) => u32::MAX,
-    };
-}
 
 fn main() {
     let native_options: NativeOptions = eframe::NativeOptions {
