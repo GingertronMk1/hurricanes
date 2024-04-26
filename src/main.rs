@@ -2,7 +2,7 @@ use eframe::{
     egui::{self, Color32, Pos2, Shape, Ui, Vec2},
     CreationContext, NativeOptions,
 };
-use std::{fmt, fs};
+use std::{cmp::Ordering, fmt, fs};
 
 const HEADER_ROWS: usize = 1;
 const NAME_INDEX: usize = 1;
@@ -179,7 +179,13 @@ fn sort_by_position(
         .into_iter()
         .filter(|p: &Player| get_value(p) <= max_preference && p.present)
         .collect();
-    intermediary.sort_by(|p1: &Player, p2: &Player| get_value(p1).cmp(&get_value(p2)));
+    intermediary.sort_by(|p1: &Player, p2: &Player| {
+        if get_value(p1).cmp(&get_value(p2)) == Ordering::Equal {
+            p1.name.cmp(&p2.name)
+        } else {
+            get_value(p1).cmp(&get_value(p2))
+        }
+    });
     return intermediary;
 }
 
