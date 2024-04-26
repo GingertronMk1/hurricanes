@@ -21,6 +21,18 @@ struct Player {
     present: bool,
 }
 
+impl Default for Player {
+    fn default() -> Self {
+        Player {
+            name: String::from("Default"),
+            wing: u32::MAX,
+            link: u32::MAX,
+            middle: u32::MAX,
+            present: true
+        }
+    }
+}
+
 #[derive(Debug, Clone)]
 enum Position {
     Wing,
